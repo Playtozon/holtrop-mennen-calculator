@@ -8,10 +8,10 @@ import { COMPONENTS } from '../zones';
 type Mode = 'resistance' | 'power';
 
 const LINES = [
-  { key: 'RT', name: 'Total resistance', color: '#0b0b0b', width: 2.5 },
-  { key: 'RFk1', name: 'Friction with form', color: '#2a78d6', width: 2 },
-  { key: 'RW', name: 'Wave making', color: '#eb6834', width: 2 },
-  { key: 'RA', name: 'Correlation', color: '#1baf7a', width: 2 },
+  { key: 'RT', name: 'Total resistance', color: '#1f2a33', width: 2.5 },
+  { key: 'RFk1', name: 'Friction with form', color: '#3a74b8', width: 2 },
+  { key: 'RW', name: 'Wave making', color: '#d36f45', width: 2 },
+  { key: 'RA', name: 'Correlation', color: '#1f9e7f', width: 2 },
 ] as const;
 
 export function SpeedCurve({ curve, designSpeed }: { curve: HMResult[]; designSpeed: number }) {
@@ -43,15 +43,15 @@ export function SpeedCurve({ curve, designSpeed }: { curve: HMResult[]; designSp
   };
 
   return (
-    <section aria-labelledby="curve-h" className="rounded-xl border border-line bg-surface p-4 shadow-sm sm:p-5">
+    <section aria-labelledby="curve-h" className="card p-5 sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 id="curve-h" className="font-serif text-xl font-bold text-ink">
+        <h2 id="curve-h" className="font-serif text-[22px] font-semibold text-ink">
           {mode === 'resistance' ? 'Resistance curve' : 'Effective power curve'}
         </h2>
         <div className="flex flex-wrap gap-2">
           <Seg value={mode} onChange={setMode} options={[['resistance', 'Resistance'], ['power', 'Power']]} />
           <Seg value={view} onChange={setView} options={[['chart', 'Chart'], ['table', 'Table']]} />
-          <button type="button" onClick={csv} className="flex items-center gap-1 rounded-md border border-line bg-white px-2.5 py-1 text-[12px] font-medium text-ink-2 hover:border-accent hover:text-accent">
+          <button type="button" onClick={csv} className="flex items-center gap-1 rounded-xl border border-line bg-white px-2.5 py-1 text-[12px] font-medium text-ink-2 hover:border-accent hover:text-accent">
             <Download size={13} /> CSV
           </button>
         </div>
@@ -97,7 +97,7 @@ export function SpeedCurve({ curve, designSpeed }: { curve: HMResult[]; designSp
                     <Line key={l.key} type="monotone" dataKey={l.key} name={l.name} stroke={l.color} strokeWidth={l.width} dot={false} activeDot={{ r: 5, strokeWidth: 2, stroke: '#fcfcfb' }} isAnimationActive={false} />
                   ))
                 ) : (
-                  <Line type="monotone" dataKey="PE" name="P_E" stroke="#2a78d6" strokeWidth={2.5} dot={false} activeDot={{ r: 5, strokeWidth: 2, stroke: '#fcfcfb' }} isAnimationActive={false} />
+                  <Line type="monotone" dataKey="PE" name="P_E" stroke="#3a74b8" strokeWidth={2.5} dot={false} activeDot={{ r: 5, strokeWidth: 2, stroke: '#fcfcfb' }} isAnimationActive={false} />
                 )}
               </LineChart>
             </ResponsiveContainer>
@@ -121,7 +121,7 @@ export function SpeedCurve({ curve, designSpeed }: { curve: HMResult[]; designSp
             </thead>
             <tbody className="num">
               {curve.map((r) => (
-                <tr key={r.speedKn} className={`border-b border-line/70 text-right ${Math.abs(r.speedKn - designSpeed) < 1e-9 ? 'bg-sea font-semibold' : ''}`}>
+                <tr key={r.speedKn} className={`border-b border-line/70 text-right ${Math.abs(r.speedKn - designSpeed) < 1e-9 ? 'bg-accent-soft font-semibold' : ''}`}>
                   <td className="py-1.5 text-left">{fmt(r.speedKn, r.speedKn % 1 ? 1 : 0)}</td>
                   <td>{fmt(r.Fn, 3)}</td>
                   {COMPONENTS.map((c) => (
@@ -170,14 +170,14 @@ function CurveTip({ active, payload, mode }: { active?: boolean; payload?: { pay
 
 function Seg<T extends string>({ value, onChange, options }: { value: T; onChange: (v: T) => void; options: [T, string][] }) {
   return (
-    <div className="inline-flex rounded-md border border-line bg-white p-0.5" role="group">
+    <div className="inline-flex rounded-xl border border-line bg-white p-0.5" role="group">
       {options.map(([v, label]) => (
         <button
           key={v}
           type="button"
           aria-pressed={value === v}
           onClick={() => onChange(v)}
-          className={`rounded px-2.5 py-0.5 text-[12px] font-medium ${value === v ? 'bg-navy text-white' : 'text-ink-2 hover:text-accent'}`}
+          className={`rounded-lg px-2.5 py-0.5 text-[12px] font-medium ${value === v ? 'bg-accent text-white' : 'text-ink-2 hover:text-accent'}`}
         >
           {label}
         </button>

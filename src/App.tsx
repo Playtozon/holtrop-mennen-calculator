@@ -43,7 +43,7 @@ function initial(): HMInputs {
 
 export default function App() {
   const [inputs, setInputs] = useState<HMInputs>(initial);
-  const [zone, setZone] = useState<ZoneId>('hull');
+  const [zone, setZone] = useState<ZoneId>(1);
   const [hoverComp, setHoverComp] = useState<ComponentKey | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -87,11 +87,11 @@ export default function App() {
 
   return (
     <div className="min-h-screen">
-      <header className="border-b border-line bg-surface">
-        <div className="mx-auto flex max-w-[1400px] flex-wrap items-end justify-between gap-3 px-4 py-4 sm:px-6">
+      <header>
+        <div className="mx-auto flex max-w-[1400px] flex-wrap items-end justify-between gap-4 px-4 pb-2 pt-7 sm:px-8">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-700">Ship resistance and propulsion</p>
-            <h1 className="font-serif text-2xl font-bold leading-tight text-ink sm:text-3xl">Holtrop–Mennen resistance calculator</h1>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-accent">Ship resistance and propulsion</p>
+            <h1 className="mt-1 font-serif text-[28px] font-semibold leading-tight text-ink sm:text-[34px]">Holtrop–Mennen resistance calculator</h1>
             <div className="mt-1 overflow-x-auto text-[13px] text-ink-2">
               <Tex tex="R_T = R_F(1+k_1) + R_{APP} + R_W + R_B + R_{TR} + R_A" />
             </div>
@@ -100,7 +100,7 @@ export default function App() {
             <label className="flex items-center gap-2 text-[12px] text-ink-2">
               <span className="sr-only sm:not-sr-only">Preset</span>
               <select
-                className="rounded-md border border-line bg-white px-2 py-1.5 text-[13px] text-ink"
+                className="rounded-xl border border-line bg-surface px-3 py-2 text-[13px] text-ink shadow-sm"
                 value={presetId}
                 onChange={(e) => {
                   const p = PRESETS.find((x) => x.id === e.target.value);
@@ -118,14 +118,14 @@ export default function App() {
             <button
               type="button"
               onClick={() => setInputs(structuredClone(WORKED_EXAMPLE))}
-              className="flex items-center gap-1.5 rounded-md border border-line bg-white px-2.5 py-1.5 text-[13px] text-ink-2 hover:border-accent hover:text-accent"
+              className="flex items-center gap-1.5 rounded-xl border border-line bg-surface px-3 py-2 text-[13px] text-ink-2 shadow-sm transition hover:border-accent hover:text-accent"
             >
               <RotateCcw size={14} /> Reset
             </button>
             <button
               type="button"
               onClick={share}
-              className="flex items-center gap-1.5 rounded-md bg-navy px-3 py-1.5 text-[13px] font-medium text-white hover:bg-accent"
+              className="flex items-center gap-1.5 rounded-xl bg-accent px-3.5 py-2 text-[13px] font-medium text-white shadow-sm transition hover:bg-navy"
             >
               {copied ? <Check size={14} /> : <Link2 size={14} />} {copied ? 'Link copied' : 'Share link'}
             </button>
@@ -133,22 +133,22 @@ export default function App() {
         </div>
       </header>
 
-      <main className="mx-auto grid max-w-[1400px] gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[minmax(0,1fr)_380px]">
-        <div className="flex min-w-0 flex-col gap-5">
-          <section aria-label="Ship diagram" className="rounded-xl border border-line bg-surface p-3 shadow-sm sm:p-4">
-            <div className="mb-2 flex flex-wrap items-center justify-between gap-2 px-1">
+      <main className="mx-auto grid max-w-[1400px] gap-6 px-4 py-6 sm:px-8 lg:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="flex min-w-0 flex-col gap-6">
+          <section aria-label="Ship diagram" className="card overflow-hidden p-2 sm:p-3">
+            <div className="mb-1 flex flex-wrap items-center justify-between gap-2 px-3 pt-2">
               <p className="flex items-center gap-1.5 text-[13px] text-ink-2">
                 <MousePointerClick size={15} className="text-accent" />
-                Hover a part of the ship to see its inputs; click to edit them.
+                Each numbered marker is one step of the method. Hover to preview, click to enter values.
               </p>
-              <p className="text-[11.5px] text-ink-3">Schematic. Draught, bulb, transom and waterplane follow your inputs.</p>
+              <p className="text-[11.5px] text-ink-3">Sheer profile, schematic. Bulb, transom and bow wave follow your inputs.</p>
             </div>
-            <div className="-mx-1 overflow-x-auto px-1 pb-1">
+            <div className="overflow-x-auto rounded-2xl">
               <div className="min-w-[720px] lg:min-w-0">
                 <ShipDiagram inputs={inputs} result={result} active={zone} highlight={highlight} onSelect={setZone} errorZones={errorZones} />
               </div>
             </div>
-            <p className="mt-1 px-1 text-[11.5px] text-ink-3 sm:hidden">Swipe sideways to see the whole ship.</p>
+            <p className="mt-1 px-3 pb-1 text-[11.5px] text-ink-3 sm:hidden">Swipe sideways to see the whole ship.</p>
           </section>
 
           {/* Panel appears here on small screens */}
@@ -159,14 +159,14 @@ export default function App() {
           {result ? (
             <Summary r={result} onHoverComponent={setHoverComp} />
           ) : (
-            <section className="rounded-xl border border-red-200 bg-red-50 p-5 text-[14px] text-red-900">
+            <section className="rounded-[1.25rem] border border-red-200 bg-red-50/80 p-5 text-[14px] text-red-900">
               <h2 className="font-semibold">No result yet</h2>
               <p className="mt-1">Fix the inputs listed below to run the calculation.</p>
             </section>
           )}
-          <Issues issues={issues} onZone={(z) => setZone(z as ZoneId)} />
+          <Issues issues={issues} onZone={(z) => setZone(z)} />
           {result && curve.length > 1 && <SpeedCurve curve={curve} designSpeed={inputs.designSpeed} />}
-          {result && <Steps inputs={inputs} result={result} />}
+          {result && <Steps inputs={inputs} result={result} active={zone} onSelect={(n) => setZone(n as ZoneId)} />}
           <MethodNote />
         </div>
 
@@ -177,7 +177,7 @@ export default function App() {
         </aside>
       </main>
 
-      <footer className="border-t border-line py-4 text-center text-[12px] text-ink-3">
+      <footer className="mx-auto max-w-[1400px] px-4 pb-8 pt-2 text-center text-[12px] text-ink-3 sm:px-8">
         Holtrop, J. &amp; Mennen, G.G.J. (1982), “An approximate power prediction method”, International Shipbuilding Progress 29. Regression formulas from MARIN model tests and trials.
       </footer>
     </div>

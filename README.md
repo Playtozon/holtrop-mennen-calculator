@@ -4,7 +4,7 @@ An interactive web app that estimates the calm-water resistance and effective po
 
 ![Ship diagram](docs/ship-diagram.png)
 
-Hover any part of the ship (bulbous bow, hull body, midship section, waterline, waterplane, transom, rudder, superstructure, bow wave) to see the inputs it controls and the resistance components it feeds. Click it to edit those inputs. Results update instantly:
+The ship's sheer profile carries a numbered marker for each of the method's eight steps: the main hull (hull form), the wetted hull (friction), the afterbody run (form factor), the rudder and propeller (appendages), the bow wave (waves), the bulb and transom, the superstructure (correlation) and the funnel / speed tag (total and power). Hover a marker to preview that step's values; click it to enter its inputs and see what it computes. Results update instantly:
 
 - **Total resistance** $R_T$ and **effective power** $P_E = R_T V$ at the design speed, with a breakdown of the six components
 - A **resistance or power curve** over a speed range you choose, as a chart, as a table, or as a CSV download
@@ -53,12 +53,12 @@ src/
     validity.ts       Input errors and fitted-range checks
     holtrop.test.ts   Vitest suite against the 1982 worked example
   components/
-    ShipDiagram.tsx   Interactive SVG: sheer profile, waterplane, midship section
-    ZonePanel.tsx     Inputs for the selected part of the ship
+    ShipDiagram.tsx   Interactive SVG sheer profile with the eight steps as hotspots
+    ZonePanel.tsx     Inputs and outputs for the selected step
     Results.tsx       R_T / P_E summary, component breakdown, checks
     SpeedCurve.tsx    Resistance or power curve, table and CSV export
     Steps.tsx         Eight-step trace with KaTeX formulas
-  zones.ts            Ship zones → input fields → resistance components
+  zones.ts            Steps 1–8 → ship hotspot, input fields, resistance components
   App.tsx             State, persistence (localStorage and share links)
 ```
 

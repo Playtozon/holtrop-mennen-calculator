@@ -4,8 +4,8 @@ import type { HMInputs, HMResult } from '../engine/types';
 import { fmt, kN, kW, sig } from '../format';
 import { Tex } from './Tex';
 
-type Row = [tex: string, value: string, note?: string];
-interface Step {
+export type Row = [tex: string, value: string, note?: string];
+export interface Step {
   n: number;
   title: string;
   summary: string;
@@ -13,7 +13,7 @@ interface Step {
   rows: Row[];
 }
 
-function buildSteps(i: HMInputs, r: HMResult): Step[] {
+export function buildSteps(i: HMInputs, r: HMResult): Step[] {
   const fs = (x: number, s = 4) => sig(x, s);
   return [
     {
@@ -156,7 +156,17 @@ function buildSteps(i: HMInputs, r: HMResult): Step[] {
   ];
 }
 
-export function Steps({ inputs, result }: { inputs: HMInputs; result: HMResult }) {
+export function Steps({
+  inputs,
+  result,
+  active,
+  onSelect,
+}: {
+  inputs: HMInputs;
+  result: HMResult;
+  active: number;
+  onSelect: (n: number) => void;
+}) {
   const steps = buildSteps(inputs, result);
   const [open, setOpen] = useState<Set<number>>(new Set([8]));
   const toggle = (n: number) =>
@@ -168,9 +178,9 @@ export function Steps({ inputs, result }: { inputs: HMInputs; result: HMResult }
     });
   const all = open.size === steps.length;
   return (
-    <section aria-labelledby="steps-h" className="rounded-xl border border-line bg-surface p-4 shadow-sm sm:p-5">
+    <section aria-labelledby="steps-h" className="card p-5 sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 id="steps-h" className="font-serif text-xl font-bold text-ink">
+        <h2 id="steps-h" className="font-serif text-[22px] font-semibold text-ink">
           Eight steps at {fmt(result.speedKn, result.speedKn % 1 ? 1 : 0)} knots
         </h2>
         <button
@@ -185,14 +195,20 @@ export function Steps({ inputs, result }: { inputs: HMInputs; result: HMResult }
         {steps.map((s) => {
           const isOpen = open.has(s.n);
           return (
-            <li key={s.n} className={`rounded-lg border ${s.n === 8 ? 'border-navy' : 'border-line'} bg-white`}>
+            <li
+              key={s.n}
+              className={`rounded-xl border bg-white transition-colors ${active === s.n ? 'border-accent ring-2 ring-accent/15' : 'border-line'}`}
+            >
               <button
                 type="button"
                 className="flex w-full items-center gap-3 px-3 py-2.5 text-left"
                 aria-expanded={isOpen}
-                onClick={() => toggle(s.n)}
+                onClick={() => {
+                  toggle(s.n);
+                  onSelect(s.n);
+                }}
               >
-                <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[12px] font-bold ${s.n === 8 ? 'bg-navy text-white' : 'bg-sea text-navy'}`}>
+                <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[12px] font-bold ${active === s.n ? 'bg-accent text-white' : 'bg-accent-soft text-accent'}`}>
                   {s.n}
                 </span>
                 <span className="font-semibold text-ink">{s.title}</span>
@@ -201,7 +217,7 @@ export function Steps({ inputs, result }: { inputs: HMInputs; result: HMResult }
               </button>
               {isOpen && (
                 <div className="grid gap-4 border-t border-line px-3 py-3 lg:grid-cols-[1.25fr_1fr]">
-                  <div className="formula-block min-w-0 rounded-md bg-paper px-3 py-2 text-[13px]">
+                  <div className="formula-block min-w-0 rounded-lg bg-paper/70 px-3 py-2 text-[13px]">
                     {s.formulas.map((f, k) => (
                       <Tex key={k} tex={f} block />
                     ))}

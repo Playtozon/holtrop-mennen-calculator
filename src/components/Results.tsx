@@ -14,7 +14,7 @@ export function Summary({
 }) {
   const total = r.RT;
   return (
-    <section aria-labelledby="sum-h" className="rounded-xl border border-line bg-surface p-4 shadow-sm sm:p-5">
+    <section aria-labelledby="sum-h" className="card p-5 sm:p-6">
       <h2 id="sum-h" className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-3">
         Result at {fmt(r.speedKn, r.speedKn % 1 ? 1 : 0)} knots · V = {fmt(r.V, 2)} m/s
       </h2>
@@ -26,7 +26,7 @@ export function Summary({
       </div>
 
       <div className="mt-5">
-        <div className="flex h-9 w-full overflow-hidden rounded-md" role="img" aria-label="Share of each resistance component">
+        <div className="flex h-7 w-full overflow-hidden rounded-full" role="img" aria-label="Share of each resistance component">
           {COMPONENTS.map((c) => {
             const v = r[c.key];
             const share = total > 0 ? v / total : 0;
@@ -91,7 +91,7 @@ function Stat({ label, tex, value, unit, big }: { label: string; tex: string; va
       <div className="flex items-baseline gap-1.5 text-[12px] text-ink-3">
         {label} <Tex tex={tex} className="text-ink-2" />
       </div>
-      <div className={`num font-serif font-bold text-ink ${big ? 'text-3xl sm:text-4xl' : 'text-xl'}`}>
+      <div className={`num font-serif font-semibold text-ink ${big ? 'text-3xl sm:text-4xl' : 'text-xl'}`}>
         {value}
         {unit && <span className="ml-1 font-sans text-base font-medium text-ink-2">{unit}</span>}
       </div>
@@ -112,7 +112,7 @@ export function Issues({ issues, onZone }: { issues: Issue[]; onZone: (z: NonNul
       {issues.map((i, n) => {
         const Icon = icon[i.severity];
         return (
-          <li key={n} className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-[13px] ${tone[i.severity]}`}>
+          <li key={n} className={`flex items-start gap-2 rounded-xl border px-3.5 py-2.5 text-[13px] ${tone[i.severity]}`}>
             <Icon size={16} className="mt-0.5 shrink-0" aria-label={i.severity} />
             <span className="flex-1">{i.message}</span>
             {i.zone && (

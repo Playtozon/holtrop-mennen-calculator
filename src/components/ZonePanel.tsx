@@ -1,10 +1,11 @@
-import { Plus, Trash2, Wand2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Trash2, Wand2 } from 'lucide-react';
 import { useEffect, useId, useState } from 'react';
 import { APPENDAGE_TYPES } from '../engine/presets';
 import type { Appendage, HMInputs, HMResult } from '../engine/types';
 import type { Issue } from '../engine/validity';
 import { sig } from '../format';
 import { COMPONENTS, ZONES, zoneById, type FieldDef, type ZoneId } from '../zones';
+import { buildSteps } from './Steps';
 import { Tex } from './Tex';
 
 interface Props {
@@ -19,55 +20,63 @@ interface Props {
 export function ZonePanel({ zone, onZone, inputs, result, issues, set }: Props) {
   const z = zoneById(zone);
   const zoneIssues = issues.filter((i) => i.zone === zone && i.severity !== 'info');
+  const outputs = result ? buildSteps(inputs, result)[zone - 1].rows : [];
   return (
     <section aria-labelledby="zone-title" className="flex flex-col gap-4">
-      <nav aria-label="Ship parts" className="flex flex-wrap gap-1.5">
+      <nav aria-label="Steps of the method" className="card flex items-center gap-1 p-1.5">
         {ZONES.map((x) => {
           const hasErr = issues.some((i) => i.zone === x.id && i.severity === 'error');
+          const isOn = zone === x.id;
           return (
             <button
               key={x.id}
               type="button"
               onClick={() => onZone(x.id)}
-              aria-pressed={zone === x.id}
-              className={`rounded-full border px-2.5 py-1 text-xs font-medium transition ${
-                zone === x.id
-                  ? 'border-navy bg-navy text-white'
-                  : 'border-line bg-surface text-ink-2 hover:border-accent hover:text-accent'
-              } ${hasErr ? 'ring-2 ring-red-500/60' : ''}`}
+              aria-pressed={isOn}
+              title={`Step ${x.id}: ${x.title}`}
+              className={`relative flex h-9 flex-1 items-center justify-center rounded-xl text-[13px] font-semibold transition ${
+                isOn ? 'bg-accent text-white shadow-sm' : 'text-ink-2 hover:bg-accent-soft hover:text-accent'
+              }`}
             >
-              {x.short}
+              {x.id}
+              {hasErr && <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-red-500" aria-label="has an error" />}
             </button>
           );
         })}
       </nav>
 
-      <div className="rounded-xl border border-line bg-surface p-4 shadow-sm">
-        <h2 id="zone-title" className="font-serif text-xl font-bold text-ink">
+      <div className="card p-5">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">
+          Step {z.id} of 8 · {z.where}
+        </p>
+        <h2 id="zone-title" className="mt-1 font-serif text-[22px] font-semibold text-ink">
           {z.title}
         </h2>
-        <p className="mt-1 text-[13px] leading-relaxed text-ink-2">{z.blurb}</p>
-        <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[12px] text-ink-3">
+        <p className="mt-1.5 text-[13px] leading-relaxed text-ink-2">{z.blurb}</p>
+        <div className="mt-3 flex flex-wrap items-center gap-1.5 text-[12px] text-ink-3">
           <span>Feeds</span>
           {z.drives.map((c) => {
             const comp = COMPONENTS.find((x) => x.key === c)!;
             return (
-              <span key={c} className="inline-flex items-center gap-1 rounded border border-line bg-paper px-1.5 py-0.5 text-ink-2">
-                <span className="h-2 w-2 rounded-sm" style={{ background: comp.color }} />
+              <span key={c} className="inline-flex items-center gap-1 rounded-full bg-paper px-2 py-0.5 text-ink-2">
+                <span className="h-2 w-2 rounded-full" style={{ background: comp.color }} />
                 <Tex tex={comp.tex} />
               </span>
             );
           })}
-          <span className="ml-1">via</span>
-          <Tex tex={z.terms} className="text-ink-2" />
         </div>
 
-        <div className="mt-4 flex flex-col gap-3">
-          {zone === 'appendages' && <AppendageEditor list={inputs.appendages} onChange={(l) => set('appendages', l)} />}
+        <div className="mt-5 flex flex-col gap-3.5">
+          {zone === 4 && <AppendageEditor list={inputs.appendages} onChange={(l) => set('appendages', l)} />}
+          {zone === 3 && <SternPicker value={inputs.Cstern} onChange={(v) => set('Cstern', v)} />}
           {z.fields.map((fd) => (
             <NumberField key={fd.key} def={fd} value={inputs[fd.key] as number | null} result={result} onChange={(v) => set(fd.key, v as never)} />
           ))}
-          {zone === 'transom' && <SternPicker value={inputs.Cstern} onChange={(v) => set('Cstern', v)} />}
+          {zone === 3 && (
+            <p className="text-[12px] leading-snug text-ink-3">
+              The form factor also uses L, B, T, CP and lcb from step 1.
+            </p>
+          )}
         </div>
 
         {zoneIssues.length > 0 && (
@@ -75,15 +84,52 @@ export function ZonePanel({ zone, onZone, inputs, result, issues, set }: Props) 
             {zoneIssues.map((i, n) => (
               <li
                 key={n}
-                className={`rounded-md px-2.5 py-1.5 text-[12.5px] ${
-                  i.severity === 'error' ? 'bg-red-50 text-red-800' : 'bg-amber-50 text-amber-900'
-                }`}
+                className={`rounded-lg px-3 py-2 text-[12.5px] ${i.severity === 'error' ? 'bg-red-50 text-red-800' : 'bg-amber-50 text-amber-900'}`}
               >
                 {i.message}
               </li>
             ))}
           </ul>
         )}
+
+        {outputs.length > 0 && (
+          <div className="mt-5 rounded-xl bg-paper/70 px-3.5 py-3">
+            <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-3">
+              This step at {result!.speedKn} kn
+            </p>
+            <table className="w-full text-[12.5px]">
+              <tbody>
+                {outputs.map(([sym, val], k) => (
+                  <tr key={k} className="border-b border-line/60 last:border-0">
+                    <td className="py-1 pr-2 text-ink-2">
+                      <Tex tex={sym} />
+                    </td>
+                    <td className="num py-1 text-right font-medium text-ink">{val}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <div className="mt-4 flex justify-between">
+          <button
+            type="button"
+            disabled={zone === 1}
+            onClick={() => onZone((zone - 1) as ZoneId)}
+            className="flex items-center gap-1 rounded-lg px-2 py-1 text-[12.5px] font-medium text-ink-2 hover:text-accent disabled:opacity-30"
+          >
+            <ChevronLeft size={15} /> Previous
+          </button>
+          <button
+            type="button"
+            disabled={zone === 8}
+            onClick={() => onZone((zone + 1) as ZoneId)}
+            className="flex items-center gap-1 rounded-lg px-2 py-1 text-[12.5px] font-medium text-ink-2 hover:text-accent disabled:opacity-30"
+          >
+            Next step <ChevronRight size={15} />
+          </button>
+        </div>
       </div>
     </section>
   );
@@ -118,7 +164,7 @@ function NumberField({
         <span className="font-medium text-ink">{def.label}</span>
         <Tex tex={def.sym} className="text-ink-2" />
       </label>
-      <div className={`flex items-stretch overflow-hidden rounded-lg border bg-white focus-within:ring-2 focus-within:ring-accent/40 ${invalid ? 'border-red-500' : 'border-line'}`}>
+      <div className={`flex items-stretch overflow-hidden rounded-xl border bg-white transition focus-within:border-accent focus-within:ring-4 focus-within:ring-accent/10 ${invalid ? 'border-red-500' : 'border-line'}`}>
         <input
           id={id}
           type="text"
@@ -187,7 +233,7 @@ function SternPicker({ value, onChange }: { value: number; onChange: (v: number)
             aria-pressed={value === s.v}
             onClick={() => onChange(s.v)}
             className={`flex flex-col items-center gap-1 rounded-lg border p-1.5 text-center text-[10.5px] leading-tight transition ${
-              value === s.v ? 'border-accent bg-sea text-ink' : 'border-line bg-white text-ink-2 hover:border-accent'
+              value === s.v ? 'border-accent bg-accent-soft text-ink' : 'border-line bg-white text-ink-2 hover:border-accent'
             }`}
           >
             <svg viewBox="0 0 40 48" className="h-10 w-9" aria-hidden>
@@ -214,7 +260,7 @@ function AppendageEditor({ list, onChange }: { list: Appendage[]; onChange: (l: 
       </div>
       <div className="flex flex-col gap-2">
         {list.map((a) => (
-          <div key={a.id} className="grid grid-cols-[1fr_74px_64px_28px] items-center gap-1.5 rounded-lg border border-line bg-white p-1.5">
+          <div key={a.id} className="grid grid-cols-[1fr_74px_64px_28px] items-center gap-1.5 rounded-xl border border-line bg-white p-1.5">
             <select
               aria-label="Appendage type"
               className="min-w-0 rounded border border-line bg-white px-1.5 py-1.5 text-[12.5px]"
@@ -247,7 +293,7 @@ function AppendageEditor({ list, onChange }: { list: Appendage[]; onChange: (l: 
         <button
           type="button"
           onClick={() => onChange([...list, { id: `n${Date.now()}${nextId++}`, name: 'Bilge keels', area: 20, onePlusK2: 1.4 }])}
-          className="flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-line py-1.5 text-[12.5px] font-medium text-accent hover:border-accent hover:bg-sea/50"
+          className="flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-line py-1.5 text-[12.5px] font-medium text-accent hover:border-accent hover:bg-accent-soft/60"
         >
           <Plus size={14} /> Add appendage
         </button>

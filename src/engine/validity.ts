@@ -22,8 +22,8 @@ export type Severity = 'error' | 'warn' | 'info';
 export interface Issue {
   severity: Severity;
   message: string;
-  /** Zone of the ship diagram the issue belongs to */
-  zone?: string;
+  /** Step / zone of the ship diagram the issue belongs to (1–8) */
+  zone?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 }
 
 const inRange = (x: number, [a, b]: [number, number]) => x >= a && x <= b;
@@ -41,17 +41,17 @@ export function bestShipType(CP: number, LB: number, BT: number): ShipTypeRange 
 /** Input checks that make the formulas undefined. Returned issues with severity 'error' block the result. */
 export function checkInputs(inp: HMInputs): Issue[] {
   const out: Issue[] = [];
-  const pos: [keyof HMInputs, string, string][] = [
-    ['L', 'Waterline length L', 'hull'],
-    ['B', 'Breadth B', 'midship'],
-    ['TF', 'Draught forward TF', 'waterline'],
-    ['TA', 'Draught aft TA', 'waterline'],
-    ['volume', 'Displaced volume ∇', 'hull'],
-    ['CM', 'Midship coefficient CM', 'midship'],
-    ['CWP', 'Waterplane coefficient CWP', 'waterplane'],
-    ['rho', 'Density ρ', 'environment'],
-    ['nu', 'Viscosity ν', 'environment'],
-    ['g', 'Gravity g', 'environment'],
+  const pos: [keyof HMInputs, string, Issue['zone']][] = [
+    ['L', 'Waterline length L', 1],
+    ['B', 'Breadth B', 1],
+    ['TF', 'Draught forward TF', 1],
+    ['TA', 'Draught aft TA', 1],
+    ['volume', 'Displaced volume ∇', 1],
+    ['CM', 'Midship coefficient CM', 1],
+    ['CWP', 'Waterplane coefficient CWP', 2],
+    ['rho', 'Density ρ', 2],
+    ['nu', 'Viscosity ν', 2],
+    ['g', 'Gravity g', 2],
   ];
   for (const [k, label, zone] of pos) {
     const v = inp[k] as number;
@@ -59,28 +59,28 @@ export function checkInputs(inp: HMInputs): Issue[] {
   }
   if (out.length) return out;
 
-  if (inp.CM > 1) out.push({ severity: 'error', message: 'CM cannot exceed 1.', zone: 'midship' });
-  if (inp.CWP >= 1) out.push({ severity: 'error', message: 'CWP must be below 1.', zone: 'waterplane' });
+  if (inp.CM > 1) out.push({ severity: 'error', message: 'CM cannot exceed 1.', zone: 1 });
+  if (inp.CWP >= 1) out.push({ severity: 'error', message: 'CWP must be below 1.', zone: 2 });
   const T = (inp.TF + inp.TA) / 2;
   const CB = inp.volume / (inp.L * inp.B * T);
   const CP = CB / inp.CM;
-  if (CB >= 1) out.push({ severity: 'error', message: `CB = ${CB.toFixed(3)} ≥ 1: displaced volume is larger than the L·B·T box.`, zone: 'hull' });
-  if (CP >= 0.95) out.push({ severity: 'error', message: `CP = ${CP.toFixed(3)}: the form-factor term (0.95 − CP) needs CP < 0.95.`, zone: 'hull' });
-  if (CP <= 0.25) out.push({ severity: 'error', message: `CP = ${CP.toFixed(3)} is too small: L_R needs 4 CP − 1 > 0.`, zone: 'hull' });
-  if (1 - CP + 0.0225 * inp.lcb <= 0) out.push({ severity: 'error', message: '1 − CP + 0.0225 lcb must be positive: lcb is too far aft.', zone: 'hull' });
-  if (1 - CP - 0.0225 * inp.lcb <= 0) out.push({ severity: 'error', message: '1 − CP − 0.0225 lcb must be positive: lcb is too far forward.', zone: 'hull' });
-  if (inp.ABT < 0 || inp.hB < 0 || inp.AT < 0) out.push({ severity: 'error', message: 'Bulb and transom areas and h_B cannot be negative.', zone: 'bow' });
+  if (CB >= 1) out.push({ severity: 'error', message: `CB = ${CB.toFixed(3)} ≥ 1: displaced volume is larger than the L·B·T box.`, zone: 1 });
+  if (CP >= 0.95) out.push({ severity: 'error', message: `CP = ${CP.toFixed(3)}: the form-factor term (0.95 − CP) needs CP < 0.95.`, zone: 1 });
+  if (CP <= 0.25) out.push({ severity: 'error', message: `CP = ${CP.toFixed(3)} is too small: L_R needs 4 CP − 1 > 0.`, zone: 1 });
+  if (1 - CP + 0.0225 * inp.lcb <= 0) out.push({ severity: 'error', message: '1 − CP + 0.0225 lcb must be positive: lcb is too far aft.', zone: 1 });
+  if (1 - CP - 0.0225 * inp.lcb <= 0) out.push({ severity: 'error', message: '1 − CP − 0.0225 lcb must be positive: lcb is too far forward.', zone: 1 });
+  if (inp.ABT < 0 || inp.hB < 0 || inp.AT < 0) out.push({ severity: 'error', message: 'Bulb and transom areas and h_B cannot be negative.', zone: 6 });
   if (inp.ABT > 0 && inp.TF - 1.5 * inp.hB <= 0)
-    out.push({ severity: 'error', message: 'T_F − 1.5 h_B must be positive for the bulb emergence P_B.', zone: 'bow' });
+    out.push({ severity: 'error', message: 'T_F − 1.5 h_B must be positive for the bulb emergence P_B.', zone: 6 });
   if (inp.ABT > 0 && inp.TF - inp.hB - 0.25 * Math.sqrt(inp.ABT) < 0)
-    out.push({ severity: 'warn', message: 'The bulb top reaches the waterline (T_F − h_B − 0.25√A_BT < 0).', zone: 'bow' });
+    out.push({ severity: 'warn', message: 'The bulb top reaches the waterline (T_F − h_B − 0.25√A_BT < 0).', zone: 6 });
   if (inp.iEOverride != null && (inp.iEOverride <= 0 || inp.iEOverride >= 90))
-    out.push({ severity: 'error', message: 'Half angle of entrance i_E must be between 0° and 90°.', zone: 'waterplane' });
+    out.push({ severity: 'error', message: 'Half angle of entrance i_E must be between 0° and 90°.', zone: 5 });
   if (inp.appendages.some((a) => a.area < 0 || a.onePlusK2 < 1))
-    out.push({ severity: 'error', message: 'Appendage areas must be ≥ 0 and each 1 + k2 must be ≥ 1.', zone: 'appendages' });
-  if (!(inp.designSpeed > 0)) out.push({ severity: 'error', message: 'Design speed must be positive.', zone: 'speed' });
+    out.push({ severity: 'error', message: 'Appendage areas must be ≥ 0 and each 1 + k2 must be ≥ 1.', zone: 4 });
+  if (!(inp.designSpeed > 0)) out.push({ severity: 'error', message: 'Design speed must be positive.', zone: 8 });
   if (inp.AT > 0 && 0.8 * inp.AT >= inp.B * T * inp.CM)
-    out.push({ severity: 'error', message: 'Transom area too large: c5 = 1 − 0.8 A_T/(B T C_M) would be ≤ 0.', zone: 'transom' });
+    out.push({ severity: 'error', message: 'Transom area too large: c5 = 1 − 0.8 A_T/(B T C_M) would be ≤ 0.', zone: 6 });
   return out;
 }
 
@@ -104,11 +104,11 @@ export function checkValidity(inp: HMInputs, r: HMResult): Issue[] {
     out.push({
       severity: 'warn',
       message: `Fn = ${r.Fn.toFixed(3)} at ${r.speedKn} kn exceeds ${type.maxFn} quoted for ${type.name.toLowerCase()}.`,
-      zone: 'speed',
+      zone: 8,
     });
   if (inp.hB > 0.6 * inp.TF && inp.ABT > 0)
-    out.push({ severity: 'warn', message: `h_B = ${inp.hB} m is above 0.6 T_F = ${(0.6 * inp.TF).toFixed(2)} m.`, zone: 'bow' });
+    out.push({ severity: 'warn', message: `h_B = ${inp.hB} m is above 0.6 T_F = ${(0.6 * inp.TF).toFixed(2)} m.`, zone: 6 });
   if (Math.abs(inp.TF - inp.TA) / r.T > 0.1)
-    out.push({ severity: 'info', message: 'Large trim: the method uses mean draught T and forward draught T_F only.', zone: 'waterline' });
+    out.push({ severity: 'info', message: 'Large trim: the method uses mean draught T and forward draught T_F only.', zone: 1 });
   return out;
 }
