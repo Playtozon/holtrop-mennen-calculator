@@ -1,0 +1,73 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Source Serif 4', ui-serif, Georgia, serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --color-paper: #f6f4ef;
+  --color-surface: #fcfcfb;
+  --color-ink: #0b0b0b;
+  --color-ink-2: #52514e;
+  --color-ink-3: #7a7974;
+  --color-line: #e3e0d8;
+  --color-navy: #0f2a44;
+  --color-sea: #dbe9f6;
+  --color-sea-deep: #b7d3f6;
+  --color-accent: #1c5cab;
+
+  /* Resistance components — categorical slots 1–6, fixed order */
+  --color-c-rf: #2a78d6;
+  --color-c-rw: #eb6834;
+  --color-c-ra: #1baf7a;
+  --color-c-rapp: #eda100;
+  --color-c-rb: #e87ba4;
+  --color-c-rtr: #008300;
+}
+
+html { background: var(--color-paper); }
+body { color: var(--color-ink); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+
+.num { font-variant-numeric: tabular-nums; }
+.katex { font-size: 1.02em; }
+.formula-block .katex-display { margin: 0.35rem 0; overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
+
+input[type='number']::-webkit-inner-spin-button { opacity: 0.4; }
+
+/* ── Ship diagram ── */
+.ship-svg text { font-family: var(--font-sans); }
+.view-label { font-size: 11px; letter-spacing: 0.12em; fill: var(--color-ink-3); font-weight: 600; }
+.hull-above { fill: #eef2f6; }
+.hull-under { fill: #c9d6e3; }
+.hull-outline { stroke: #0f2a44; stroke-width: 2.2; stroke-linejoin: round; }
+.ss { fill: #eef2f6; stroke: #0f2a44; stroke-width: 1.6; }
+.funnel { fill: #0f2a44; }
+.prop { fill: #8a6d3b; stroke: #0f2a44; stroke-width: 1.2; }
+.rudder { fill: #dfe6ee; stroke: #0f2a44; stroke-width: 1.8; }
+.thruster { fill: #0f2a44; opacity: 0.6; }
+.transom-mark { fill: var(--color-c-rtr); opacity: 0.85; }
+.bulb-mark { fill: var(--color-c-rb); opacity: 0.35; stroke: none; }
+.wl { stroke: #1c5cab; stroke-width: 1.6; stroke-dasharray: 8 5; }
+.station { stroke: #7a7974; stroke-width: 1.2; stroke-dasharray: 3 3; }
+.dim { stroke: #52514e; stroke-width: 1; }
+.dim-text { font-size: 12px; fill: #52514e; }
+.dim-text.strong { fill: #0b0b0b; font-weight: 600; }
+.wave { fill: none; stroke: #1c5cab; stroke-width: 2.4; stroke-linecap: round; }
+.speed-arrow { stroke: #0f2a44; stroke-width: 2; }
+.speed-text { font-size: 13px; font-weight: 600; fill: #0f2a44; }
+.plane { fill: #eef2f6; stroke: #0f2a44; stroke-width: 2; }
+.ie-line { stroke: var(--color-c-rw); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.ie-arc { fill: none; stroke: var(--color-c-rw); stroke-width: 2; }
+
+.zone { cursor: pointer; outline: none; }
+.zone .hit { fill: transparent; stroke: transparent; stroke-width: 2; transition: fill 120ms, stroke 120ms; }
+.zone.on .hit { fill: rgba(42, 120, 214, 0.12); stroke: #1c5cab; stroke-dasharray: 6 4; }
+.zone.active .hit { fill: rgba(42, 120, 214, 0.16); stroke: #1c5cab; stroke-dasharray: none; }
+.zone.err .hit { stroke: #d03b3b; stroke-dasharray: 3 3; }
+.zone:focus-visible .hit { stroke: #0b0b0b; stroke-width: 3; stroke-dasharray: none; }
+
+.pin-halo { fill: rgba(28, 92, 171, 0.18); animation: pin-pulse 2.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.pin-dot { fill: #1c5cab; stroke: #fff; stroke-width: 1.5; }
+.pin-label { font-size: 12px; font-weight: 600; fill: #0f2a44; paint-order: stroke; stroke: #fcfcfb; stroke-width: 3px; stroke-linejoin: round; }
+@keyframes pin-pulse { 0%, 100% { transform: scale(0.8); opacity: 0.9; } 50% { transform: scale(1.35); opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { .pin-halo { animation: none; } }
